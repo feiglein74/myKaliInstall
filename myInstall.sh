@@ -1,15 +1,113 @@
 #!/bin/bash
+
+function error_exit {
+  echo "Error: $1"
+  exit 1
+}
+
+function check_command {
+  if ! command -v "$1" &> /dev/null; then
+    error_exit "Command '$1' not found. Please install it first."
+  fi
+}
+
+function check_file {
+  if [ ! -f "$1" ]; then
+    error_exit "File '$1' not found. Please ensure it exists."
+  fi
+}
+
+function check_directory {
+  if [ ! -d "$1" ]; then
+    error_exit "Directory '$1' not found. Please ensure it exists."
+  fi
+} 
+
+function check_url {
+  if ! curl --output /dev/null --silent --head --fail "$1"; then
+    error_exit "URL '$1' is not reachable. Please check your internet connection."
+  fi
+} 
+
+function check_package {
+  if ! dpkg -l | grep -q "$1"; then
+    error_exit "Package '$1' is not installed. Please install it first."
+  fi
+}
+
+function check_snap {
+  if ! snap list | grep -q "$1"; then
+    error_exit "Snap package '$1' is not installed. Please install it first."
+  fi
+} 
+
+function check_git {
+  if ! git --version &> /dev/null; then
+    error_exit "Git is not installed. Please install it first."
+  fi
+}
+
+function check_wget {
+  if ! wget --version &> /dev/null; then
+    error_exit "Wget is not installed. Please install it first."
+  fi
+}
+
+function check_unzip {
+  if ! unzip -v &> /dev/null; then
+    error_exit "Unzip is not installed. Please install it first."
+  fi
+}
+
+function check_curl {
+  if ! curl --version &> /dev/null; then
+    error_exit "Curl is not installed. Please install it first."
+  fi
+}
+
+function check_sudo {
+  if ! sudo -v &> /dev/null; then
+    error_exit "Sudo is not configured. Please configure it first."
+  fi
+}
+
+function check_apt {
+  if ! command -v apt &> /dev/null; then
+    error_exit "APT package manager is not available. Please ensure you are using a Debian-based system."
+  fi
+}
+
+function install-apt-package {
+  local package="$1"
+  if [[ $(command -v "$package") ]]; then
+    echo "$package is already installed."
+  else
+    echo "Installing $package..."
+    sudo apt -y install "$package" || error_exit "Failed to install $package."
+  fi
+}
+
+# Check for required commands
+check_command "sudo"
+check_command "apt"
+check_command "git"
+check_command "wget"
+check_command "unzip"
+check_command "curl"
+check_command "snap"
+
 # Update Routine
 source ./myUpdate.sh
 #
 # https://github.com/gnome-terminator/terminator
-if [[ $(command -v terminator) ]]; then
+install-apt-package "terminator"
+#if [[ $(command -v terminator) ]]; then
   # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "terminator schon installiert"
-else
+#  echo "terminator schon installiert"
+#else
   # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install terminator
-fi
+#  sudo apt -y install terminator
+#fi
 # https://snapcraft.io/store
 if [[ $(command -v snap) ]]; then
   # Code, der ausgeführt wird, wenn die Bedingung wahr ist
