@@ -158,6 +158,7 @@ chmod a+x hayabusa-3.3.0-lin-x64-musl
 ./hayabusa-3.3.0-lin-x64-musl update-rules --quiet
 rm /tmp/hayabusa-json
 cd ..
+reset
 #
 # https://github.com/tio/tio
 install-apt-package "tio"
