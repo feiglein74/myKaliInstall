@@ -94,7 +94,7 @@ check_command "git"
 check_command "wget"
 check_command "unzip"
 check_command "curl"
-check_command "snap"
+
 
 # Update Routine
 source ./myUpdate.sh
