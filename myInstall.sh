@@ -193,7 +193,7 @@ curl -s https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/d
 cat /tmp/dnspyre-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
 tar -xzvf dnspyre_linux_amd64.tar.gz
 rm dnspyre_linux_amd64.tar.gz
-wget  https://raw.githubusercontent.com/Tantalor93/dnspyre/master/data/10000-domains
+wget -q https://raw.githubusercontent.com/Tantalor93/dnspyre/master/data/10000-domains
 rm /tmp/dnspyre-json
 cd ~
 #
