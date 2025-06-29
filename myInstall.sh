@@ -197,5 +197,4 @@ rm /tmp/dnspyre-json
 cd ~
 #
 # https://www.postman.com/
-install-apt-package "postman"
-
+install-snap-package "postman"
