@@ -150,7 +150,7 @@ eval "$(curl https://get.x-cmd.com)"
 # https://github.com/Yamato-Security/hayabusa
 mkdir ~/hayabusa
 cd ~/hayabusa
-curl https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
+curl -s https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
 cat /tmp/hayabusa-json | /snap/bin/jq '.assets[] | select (.name|test("lin-x64-musl.zip"))' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
 unzip -o -qq hayabusa-3.3.0-lin-x64-musl.zip
 rm hayabusa-3.3.0-lin-x64-musl.zip
@@ -175,7 +175,7 @@ install-apt-package "onedriver"
 # Chrome installieren
 install-apt-package "libxss1"
 cd ~
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo apt -f install ./google-chrome*.deb
 rm google-chrome-stable_current_amd64.deb
 #
@@ -189,7 +189,7 @@ cd ~
 # https://github.com/Tantalor93/dnspyre
 mkdir ~/dnspyre
 cd ~/dnspyre
-curl https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
+curl -s https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
 cat /tmp/dnspyre-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
 tar -xzvf dnspyre_linux_amd64.tar.gz
 rm dnspyre_linux_amd64.tar.gz
