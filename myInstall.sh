@@ -92,7 +92,7 @@ function install-apt-package {
     echo "$package is already installed."
   else
     echo "Installing $package..."
-    sudo apt -y install "$package" || error_exit "Failed to install $package."
+    sudo apt -qq -y install "$package" || error_exit "Failed to install $package."
   fi
 }
 
@@ -134,7 +134,12 @@ install-apt-package "parallel"
 install-snap-package "btop"
 
 # https://code.visualstudio.com/
-install-snap-package "code"
+if [[ $(command -v code) ]]; then
+  echo "Code is already installed."
+else
+  echo "Installing Code..."
+  sudo snap install code --classic || error_exit "Failed to install $package."
+fi
 
 # https://jqlang.org/
 install-snap-package "jq"
@@ -176,12 +181,11 @@ rm google-chrome-stable_current_amd64.deb
 # https://github.com/jedisct1/dnsblast
 cd ~
 git clone https://github.com/jedisct1/dnsblast
-cd dnsblast
+cd ~/dnsblast
 make
 cd ~
 #
 # https://github.com/Tantalor93/dnspyre
-
 mkdir ~/dnspyre
 cd ~/dnspyre
 curl https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
