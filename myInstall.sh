@@ -18,7 +18,7 @@ else
   # Code, der ausgeführt wird, wenn die Bedingung falsch ist
   sudo apt -y install snapd
 fi
-sudo systemctl enable --now snapd apparmor
+sudo systemctl enable --now snapd snapd.apparmor
 sudo snap refresh
 
 # https://www.gnu.org/software/parallel/man.html
