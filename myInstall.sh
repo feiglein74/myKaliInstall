@@ -77,13 +77,32 @@ function check_apt {
   fi
 }
 
+function dpkg-query {
+  local package="$1"
+  if dpkg -l | grep -q "$package"; then
+    echo "$package is already installed."
+  else
+    echo "$package is not installed."
+  fi
+}
+
 function install-apt-package {
+  local package="$1"
+  if dpkg -l | grep -q "$package"; then
+    echo "$package is already installed."
+  else
+    echo "Installing $package..."
+    sudo apt -y install "$package" || error_exit "Failed to install $package."
+  fi
+}
+
+function install-snap-package {
   local package="$1"
   if [[ $(command -v "$package") ]]; then
     echo "$package is already installed."
   else
     echo "Installing $package..."
-    sudo apt -y install "$package" || error_exit "Failed to install $package."
+    sudo snap install "$package" || error_exit "Failed to install $package."
   fi
 }
 
@@ -94,6 +113,7 @@ check_command "git"
 check_command "wget"
 check_command "unzip"
 check_command "curl"
+check_command "tar"
 
 
 # Update Routine
@@ -101,56 +121,23 @@ source ./myUpdate.sh
 #
 # https://github.com/gnome-terminator/terminator
 install-apt-package "terminator"
-#if [[ $(command -v terminator) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-#  echo "terminator schon installiert"
-#else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-#  sudo apt -y install terminator
-#fi
+
 # https://snapcraft.io/store
-if [[ $(command -v snap) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "snap schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install snapd
-fi
+install-apt-package "snapd"
 sudo systemctl enable --now snapd snapd.apparmor
 sudo snap refresh
 
 # https://www.gnu.org/software/parallel/man.html
-if [[ $(command -v parallel) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "parallel schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install parallel
-fi
+install-apt-package "parallel"
+
 # https://github.com/aristocratos/btop
-if [[ $(command -v btop) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "btop schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo snap install btop
-fi
+install-snap-package "btop"
+
 # https://code.visualstudio.com/
-if [[ $(command -v code) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "Visual Studio Code schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo snap install --classic code
-fi
+install-snap-package "code"
+
 # https://jqlang.org/
-if [[ $(command -v jq) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "jql schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo snap install jq
-fi
+install-snap-package "jq"
 #
 # https://www.x-cmd.com/
 eval "$(curl https://get.x-cmd.com)"
@@ -168,41 +155,19 @@ rm /tmp/lf-json
 cd ..
 #
 # https://github.com/tio/tio
-if [[ $(command -v tio) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "tio schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install tio
-fi
+install-apt-package "tio"
+
 # https://github.com/orf/gping
-if [[ $(command -v gping) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "gping schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install gping 
-fi
+install-apt-package "gping"
+
 # https://obsidian.md/
-if [[ $(command -v obsidian) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "Obsidian schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install obsidian 
-fi
+install-apt-package "obsidian"
 
 # https://github.com/jstaf/onedriver
-if [[ $(command -v onedriver) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "onedriver schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo apt -y install onedriver
-fi
+install-apt-package "onedriver"
 #
 # Chrome installieren
-sudo apt -y install libxss1
+install-apt-package "libxss1"
 cd ~
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo apt -f install ./google-chrome*.deb
@@ -227,16 +192,5 @@ wget  https://raw.githubusercontent.com/Tantalor93/dnspyre/master/data/10000-dom
 cd ~
 #
 # https://www.postman.com/
-if [[ $(command -v postman) ]]; then
-  # Code, der ausgeführt wird, wenn die Bedingung wahr ist
-  echo "Postman schon installiert"
-else
-  # Code, der ausgeführt wird, wenn die Bedingung falsch ist
-  sudo snap install postman
-fi
-
-
-
-
-
+install-apt-package "postman"
 
