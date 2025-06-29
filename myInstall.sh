@@ -155,7 +155,7 @@ cat /tmp/hayabusa-json | /snap/bin/jq '.assets[] | select (.name|test("lin-x64-m
 unzip hayabusa-3.3.0-lin-x64-musl.zip
 rm hayabusa-3.3.0-lin-x64-musl.zip
 chmod a+x hayabusa-3.3.0-lin-x64-musl
-./hayabusa-3.3.0-lin-x64-musl update-rules
+./hayabusa-3.3.0-lin-x64-musl update-rules --quiet
 rm /tmp/hayabusa-json
 cd ..
 #
