@@ -145,13 +145,13 @@ eval "$(curl https://get.x-cmd.com)"
 # https://github.com/Yamato-Security/hayabusa
 mkdir ~/hayabusa
 cd ~/hayabusa
-curl https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/lf-json
-cat /tmp/lf-json | /snap/bin/jq '.assets[] | select (.name|test(".lin-x64-musl.zip"))' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
+curl https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
+cat /tmp/hayabusa-json | /snap/bin/jq '.assets[] | select (.name|test("lin-x64-musl.zip"))' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
 unzip hayabusa-3.3.0-lin-x64-musl.zip
 rm hayabusa-3.3.0-lin-x64-musl.zip
 chmod a+x hayabusa-3.3.0-lin-x64-musl
 ./hayabusa-3.3.0-lin-x64-musl update-rules
-rm /tmp/lf-json
+rm /tmp/hayabusa-json
 cd ..
 #
 # https://github.com/tio/tio
@@ -184,11 +184,12 @@ cd ~
 
 mkdir ~/dnspyre
 cd ~/dnspyre
-curl https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/lf-json
-cat /tmp/lf-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
+curl https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
+cat /tmp/dnspyre-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
 tar -xzvf dnspyre_linux_amd64.tar.gz
 rm dnspyre_linux_amd64.tar.gz
 wget  https://raw.githubusercontent.com/Tantalor93/dnspyre/master/data/10000-domains
+rm /tmp/dnspyre-json
 cd ~
 #
 # https://www.postman.com/
