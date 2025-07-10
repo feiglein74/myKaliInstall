@@ -209,3 +209,4 @@ install-snap-package "keepassxc"
 # https://www.zerotier.com/
 curl -s https://install.zerotier.com | sudo bash
 
+install-apt-package "mdk3"
