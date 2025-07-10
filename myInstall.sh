@@ -200,8 +200,12 @@ cd ~
 # https://www.postman.com/
 install-snap-package "postman"
 
+# logseq - outliner
+# https://logseq.com/
 install-snap-package "logseq"
 
+# keepassxc - password manager
+# https://keepassxc.org/
 install-snap-package "keepassxc"
 
 
