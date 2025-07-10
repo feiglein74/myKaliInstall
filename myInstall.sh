@@ -200,7 +200,6 @@ cd ~
 # https://www.postman.com/
 install-snap-package "postman"
 
-# Zerotier
-# https://www.zerotier.com/
-curl -s https://install.zerotier.com | sudo bash
+install-snap-package "logseq"
 
+install-snap-package "keepassxc"
