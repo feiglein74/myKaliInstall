@@ -212,3 +212,12 @@ curl -s https://install.zerotier.com | sudo bash
 # mdk3 - wireless attack tool
 # sample: mdk3 mon0 d -c 6
 install-apt-package "mdk3"
+
+# thunderbird - email client
+# https://www.thunderbird.net/
+# Note: This is not installed by default in Kali Linux.
+install-apt-package "thunderbird"
+
+# ldnsutils - DNS utilities 
+# needed for drill instead of dig
+install-apt-package "ldnsutils"
