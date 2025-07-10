@@ -209,4 +209,6 @@ install-snap-package "keepassxc"
 # https://www.zerotier.com/
 curl -s https://install.zerotier.com | sudo bash
 
+# mdk3 - wireless attack tool
+# sample: mdk3 mon0 d -c 6
 install-apt-package "mdk3"
