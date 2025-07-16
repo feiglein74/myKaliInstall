@@ -225,3 +225,7 @@ install-apt-package "thunderbird"
 # ldnsutils - DNS utilities 
 # needed for drill instead of dig
 install-apt-package "ldnsutils"
+
+# VMware Workstation - Dependencies
+#
+sudo apt install -y build-essential linux-headers-$( uname -r ) vlan
