@@ -240,3 +240,6 @@ sudo apt install -y fprintd libpam-fprintd
 
 # Tor Browser
 sudo apt install -y tor torbrowser-launcher
+
+# Glogg Logfile reader
+sudo apt install -y glogg
