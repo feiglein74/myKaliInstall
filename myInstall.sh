@@ -229,3 +229,11 @@ install-apt-package "ldnsutils"
 # VMware Workstation - Dependencies
 #
 sudo apt install -y build-essential linux-headers-$( uname -r ) vlan
+
+# Homebrew
+#
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Fingerprint-Reader
+# https://schroederdennis.de/tutorial-howto/fingerprint-login-linux-desktop-mate-gnome-xfce-kde-einrichten-ubuntu-debian-parrot/
+sudo apt install fprintd libpam-fprintd -y
