@@ -242,4 +242,7 @@ sudo apt install -y fprintd libpam-fprintd
 sudo apt install -y tor torbrowser-launcher
 
 # Glogg Logfile reader
-sudo apt install -y glogg
+install-apt-package glogg
+
+# Foremost File Carver
+install-apt-package "foremost"
