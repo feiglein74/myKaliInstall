@@ -236,4 +236,7 @@ sudo apt install -y build-essential linux-headers-$( uname -r ) vlan
 
 # Fingerprint-Reader
 # https://schroederdennis.de/tutorial-howto/fingerprint-login-linux-desktop-mate-gnome-xfce-kde-einrichten-ubuntu-debian-parrot/
-sudo apt install fprintd libpam-fprintd -y
+sudo apt install -y fprintd libpam-fprintd 
+
+# Tor Browser
+sudo apt install -y tor torbrowser-launcher
