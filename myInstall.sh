@@ -160,6 +160,14 @@ rm /tmp/hayabusa-json
 cd ..
 echo -e "\033[0m"
 #
+# Velociraptor - endpoint detection and response
+# https://www.velocidex.com/
+mkdir ~/velociraptor
+cd ~/velociraptor
+curl -s https://api.github.com/repos/Velocidex/velociraptor/releases/latest > /tmp/velociraptor-json
+cat /tmp/velociraptor-json | /snap/bin/jq '[.assets[] | select (.name|test("linux-amd64-musl$")) | .browser_download_url] | last' | xargs wget -c {}
+chmod a+x velociraptor-v*linux-amd64-musl
+#
 # https://github.com/tio/tio
 install-apt-package "tio"
 
@@ -225,24 +233,3 @@ install-apt-package "thunderbird"
 # ldnsutils - DNS utilities 
 # needed for drill instead of dig
 install-apt-package "ldnsutils"
-
-# VMware Workstation - Dependencies
-#
-sudo apt install -y build-essential linux-headers-$( uname -r ) vlan
-
-# Homebrew
-#
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Fingerprint-Reader
-# https://schroederdennis.de/tutorial-howto/fingerprint-login-linux-desktop-mate-gnome-xfce-kde-einrichten-ubuntu-debian-parrot/
-sudo apt install -y fprintd libpam-fprintd 
-
-# Tor Browser
-sudo apt install -y tor torbrowser-launcher
-
-# Glogg Logfile reader
-install-apt-package glogg
-
-# Foremost File Carver
-install-apt-package "foremost"
