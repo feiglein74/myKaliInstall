@@ -1,112 +1,112 @@
 #!/bin/bash
 
 function error_exit {
-  echo "Error: $1"
+  echo "Fehler: $1"
   exit 1
 }
 
 function check_command {
   if ! command -v "$1" &> /dev/null; then
-    error_exit "Command '$1' not found. Please install it first."
+    error_exit "Befehl '$1' nicht gefunden. Bitte zuerst installieren."
   fi
 }
 
 function check_file {
   if [ ! -f "$1" ]; then
-    error_exit "File '$1' not found. Please ensure it exists."
+    error_exit "Datei '$1' nicht gefunden. Bitte sicherstellen, dass sie existiert."
   fi
 }
 
 function check_directory {
   if [ ! -d "$1" ]; then
-    error_exit "Directory '$1' not found. Please ensure it exists."
+    error_exit "Verzeichnis '$1' nicht gefunden. Bitte sicherstellen, dass es existiert."
   fi
-} 
+}
 
 function check_url {
   if ! curl --output /dev/null --silent --head --fail "$1"; then
-    error_exit "URL '$1' is not reachable. Please check your internet connection."
+    error_exit "URL '$1' ist nicht erreichbar. Bitte Internetverbindung prüfen."
   fi
-} 
+}
 
 function check_package {
   if ! dpkg -l | grep -q "$1"; then
-    error_exit "Package '$1' is not installed. Please install it first."
+    error_exit "Paket '$1' ist nicht installiert. Bitte zuerst installieren."
   fi
 }
 
 function check_snap {
   if ! snap list | grep -q "$1"; then
-    error_exit "Snap package '$1' is not installed. Please install it first."
+    error_exit "Snap-Paket '$1' ist nicht installiert. Bitte zuerst installieren."
   fi
-} 
+}
 
 function check_git {
   if ! git --version &> /dev/null; then
-    error_exit "Git is not installed. Please install it first."
+    error_exit "Git ist nicht installiert. Bitte zuerst installieren."
   fi
 }
 
 function check_wget {
   if ! wget --version &> /dev/null; then
-    error_exit "Wget is not installed. Please install it first."
+    error_exit "Wget ist nicht installiert. Bitte zuerst installieren."
   fi
 }
 
 function check_unzip {
   if ! unzip -v &> /dev/null; then
-    error_exit "Unzip is not installed. Please install it first."
+    error_exit "Unzip ist nicht installiert. Bitte zuerst installieren."
   fi
 }
 
 function check_curl {
   if ! curl --version &> /dev/null; then
-    error_exit "Curl is not installed. Please install it first."
+    error_exit "Curl ist nicht installiert. Bitte zuerst installieren."
   fi
 }
 
 function check_sudo {
   if ! sudo -v &> /dev/null; then
-    error_exit "Sudo is not configured. Please configure it first."
+    error_exit "Sudo ist nicht konfiguriert. Bitte zuerst konfigurieren."
   fi
 }
 
 function check_apt {
   if ! command -v apt &> /dev/null; then
-    error_exit "APT package manager is not available. Please ensure you are using a Debian-based system."
+    error_exit "APT Paketmanager ist nicht verfügbar. Bitte Debian-basiertes System verwenden."
   fi
 }
 
 function dpkg-query {
   local package="$1"
   if dpkg -l | grep -q "$package"; then
-    echo "$package is already installed."
+    echo "$package ist bereits installiert."
   else
-    echo "$package is not installed."
+    echo "$package ist nicht installiert."
   fi
 }
 
 function install-apt-package {
   local package="$1"
   if dpkg -l | grep -q "$package"; then
-    echo "$package is already installed."
+    echo "$package ist bereits installiert."
   else
-    echo "Installing $package..."
-    sudo apt -qq -y install "$package" || error_exit "Failed to install $package."
+    echo "Installiere $package..."
+    sudo apt -qq -y install "$package" || error_exit "Installation von $package fehlgeschlagen."
   fi
 }
 
 function install-snap-package {
   local package="$1"
   if [[ $(command -v "$package") ]]; then
-    echo "$package is already installed."
+    echo "$package ist bereits installiert."
   else
-    echo "Installing $package..."
-    sudo snap install "$package" || error_exit "Failed to install $package."
+    echo "Installiere $package..."
+    sudo snap install "$package" || error_exit "Installation von $package fehlgeschlagen."
   fi
 }
 
-# Check for required commands
+# Prüfe erforderliche Befehle
 check_command "sudo"
 check_command "apt"
 check_command "git"
@@ -116,7 +116,7 @@ check_command "curl"
 check_command "tar"
 
 
-# Update Routine
+# Update-Routine
 source ./myUpdate.sh
 #
 # https://github.com/gnome-terminator/terminator
@@ -135,10 +135,10 @@ install-snap-package "btop"
 
 # https://code.visualstudio.com/
 if [[ $(command -v code) ]]; then
-  echo "Code is already installed."
+  echo "Code ist bereits installiert."
 else
-  echo "Installing Code..."
-  sudo snap install code --classic || error_exit "Failed to install $package."
+  echo "Installiere Code..."
+  sudo snap install code --classic || error_exit "Installation von $package fehlgeschlagen."
 fi
 
 # https://jqlang.org/
@@ -160,7 +160,7 @@ rm /tmp/hayabusa-json
 cd ..
 echo -e "\033[0m"
 #
-# Velociraptor - endpoint detection and response
+# Velociraptor - Endpoint Detection and Response
 # https://www.velocidex.com/
 mkdir ~/velociraptor
 cd ~/velociraptor
@@ -208,11 +208,11 @@ cd ~
 # https://www.postman.com/
 install-snap-package "postman"
 
-# logseq - outliner
+# logseq - Outliner
 # https://logseq.com/
 install-snap-package "logseq"
 
-# keepassxc - password manager
+# keepassxc - Passwort-Manager
 # https://keepassxc.org/
 install-snap-package "keepassxc"
 
@@ -221,15 +221,15 @@ install-snap-package "keepassxc"
 # https://www.zerotier.com/
 curl -s https://install.zerotier.com | sudo bash
 
-# mdk3 - wireless attack tool
-# sample: mdk3 mon0 d -c 6
+# mdk3 - Wireless Attack Tool
+# Beispiel: mdk3 mon0 d -c 6
 install-apt-package "mdk3"
 
-# thunderbird - email client
+# thunderbird - E-Mail-Client
 # https://www.thunderbird.net/
-# Note: This is not installed by default in Kali Linux.
+# Hinweis: Nicht standardmäßig in Kali Linux installiert.
 install-apt-package "thunderbird"
 
-# ldnsutils - DNS utilities 
-# needed for drill instead of dig
+# ldnsutils - DNS-Utilities
+# Benötigt für drill statt dig
 install-apt-package "ldnsutils"

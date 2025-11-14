@@ -1,5 +1,5 @@
 #!/bin/bash
-# Update Routine
+# Update-Routine
 sudo apt -qq -y update
 sudo apt -qq -y upgrade
 sudo apt -qq -y dist-upgrade

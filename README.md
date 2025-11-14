@@ -1,2 +1,2 @@
 # myKaliInstall
-Shell-Script for Install all other necessary tools in Kali
+Shell-Script für die Installation aller notwendigen Tools in Kali
