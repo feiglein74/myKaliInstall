@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Version
+VERSION="1.1.0"
+
+# Versionsinformation anzeigen
+if [[ "$1" == "--version" ]] || [[ "$1" == "-v" ]]; then
+  echo "myKaliInstall v${VERSION}"
+  exit 0
+fi
+
 function error_exit {
   echo "Fehler: $1"
   exit 1
