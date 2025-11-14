@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor Backups
+*~
+*.swp
+*.swo
+*.tmp
+.*.swp
+.*.swo
+
+# Log Dateien
+*.log
+
+# Temporäre Dateien
+*.bak
+*.backup
+*.old
+/tmp/
+
+# Script-generierte temporäre Dateien
+/tmp/*.json
+*.json.tmp
+
+# Heruntergeladene Archive (falls Script nicht erfolgreich)
+*.deb
+*.tar.gz
+*.zip
+*.tar.xz
+
+# IDE/Editor Verzeichnisse
+.vscode/
+.idea/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Credentials und Secrets
+*.key
+*.pem
+*.crt
+*credentials*
+.env
+.env.local
