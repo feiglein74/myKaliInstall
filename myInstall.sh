@@ -1,16 +1,17 @@
 #!/bin/bash
+set -euo pipefail
 
 # Version
-VERSION="1.2.0"
+VERSION="1.3.0"
 
 # Versionsinformation anzeigen
-if [[ "$1" == "--version" ]] || [[ "$1" == "-v" ]]; then
+if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then
   echo "myKaliInstall v${VERSION}"
   exit 0
 fi
 
 function error_exit {
-  echo "Fehler: $1"
+  echo "Fehler: $1" >&2
   exit 1
 }
 
@@ -39,7 +40,7 @@ function check_url {
 }
 
 function check_package {
-  if ! dpkg -l | grep -q "$1"; then
+  if ! dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"; then
     error_exit "Paket '$1' ist nicht installiert. Bitte zuerst installieren."
   fi
 }
@@ -88,7 +89,7 @@ function check_apt {
 
 function check_apt_package {
   local package="$1"
-  if dpkg -l | grep -q "$package"; then
+  if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
     echo "$package ist bereits installiert."
   else
     echo "$package ist nicht installiert."
@@ -97,7 +98,7 @@ function check_apt_package {
 
 function install-apt-package {
   local package="$1"
-  if dpkg -l | grep -q "$package"; then
+  if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
     echo "$package ist bereits installiert."
   else
     echo "Installiere $package..."
@@ -154,33 +155,38 @@ fi
 install-snap-package "jq"
 #
 # https://www.x-cmd.com/
-eval "$(curl https://get.x-cmd.com)"
+# WARNUNG: Remote Code Execution - Code wird direkt von URL ausgeführt
+echo "Installiere x-cmd (Remote-Script)..."
+eval "$(curl -fsSL https://get.x-cmd.com)" || echo "x-cmd Installation fehlgeschlagen (optional)"
 #
 # https://github.com/Yamato-Security/hayabusa
 mkdir -p ~/hayabusa
-cd ~/hayabusa
+cd ~/hayabusa || error_exit "Konnte nicht nach ~/hayabusa wechseln"
 curl -s https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
 HAYABUSA_ZIP=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .name' /tmp/hayabusa-json)
 HAYABUSA_URL=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .browser_download_url' /tmp/hayabusa-json)
 wget -c "$HAYABUSA_URL"
 unzip -o -qq "$HAYABUSA_ZIP"
 rm "$HAYABUSA_ZIP"
-HAYABUSA_BIN=$(ls hayabusa-*-lin-x64-musl 2>/dev/null | head -1)
+HAYABUSA_BIN=$(find . -maxdepth 1 -name "hayabusa-*-lin-x64-musl" -type f | head -1)
+HAYABUSA_BIN="${HAYABUSA_BIN#./}"
+[[ -z "$HAYABUSA_BIN" ]] && error_exit "Hayabusa Binary nicht gefunden"
 chmod a+x "$HAYABUSA_BIN"
 ./"$HAYABUSA_BIN" update-rules --quiet
 rm /tmp/hayabusa-json
-cd ~
+cd ~ || error_exit "Konnte nicht nach ~ wechseln"
 echo -e "\033[0m"
 #
 # Velociraptor - Endpoint Detection and Response
 # https://www.velocidex.com/
 mkdir -p ~/velociraptor
-cd ~/velociraptor
+cd ~/velociraptor || error_exit "Konnte nicht nach ~/velociraptor wechseln"
 curl -s https://api.github.com/repos/Velocidex/velociraptor/releases/latest > /tmp/velociraptor-json
-cat /tmp/velociraptor-json | /snap/bin/jq '[.assets[] | select (.name|test("linux-amd64-musl$")) | .browser_download_url] | last' | xargs wget -c {}
+VELO_URL=$(/snap/bin/jq -r '[.assets[] | select(.name|test("linux-amd64-musl$")) | .browser_download_url] | last' /tmp/velociraptor-json)
+wget -c "$VELO_URL"
 chmod a+x velociraptor-v*linux-amd64-musl
 rm /tmp/velociraptor-json
-cd ~
+cd ~ || error_exit "Konnte nicht nach ~ wechseln"
 #
 # https://github.com/tio/tio
 install-apt-package "tio"
@@ -196,28 +202,33 @@ install-apt-package "onedriver"
 #
 # Chrome installieren
 install-apt-package "libxss1"
-cd ~
+cd ~ || error_exit "Konnte nicht nach ~ wechseln"
 wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo apt -f install ./google-chrome*.deb
 rm google-chrome-stable_current_amd64.deb
 #
 # https://github.com/jedisct1/dnsblast
-cd ~
-git clone https://github.com/jedisct1/dnsblast
-cd ~/dnsblast
-make
-cd ~
+cd ~ || error_exit "Konnte nicht nach ~ wechseln"
+if [[ ! -d ~/dnsblast ]]; then
+  git clone https://github.com/jedisct1/dnsblast
+  cd ~/dnsblast || error_exit "Konnte nicht nach ~/dnsblast wechseln"
+  make
+  cd ~ || error_exit "Konnte nicht nach ~ wechseln"
+else
+  echo "dnsblast ist bereits vorhanden."
+fi
 #
 # https://github.com/Tantalor93/dnspyre
 mkdir -p ~/dnspyre
-cd ~/dnspyre
+cd ~/dnspyre || error_exit "Konnte nicht nach ~/dnspyre wechseln"
 curl -s https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
-cat /tmp/dnspyre-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
+DNSPYRE_URL=$(/snap/bin/jq -r '.assets[] | select(.name=="dnspyre_linux_amd64.tar.gz") | .browser_download_url' /tmp/dnspyre-json)
+wget -c "$DNSPYRE_URL"
 tar -xzvf dnspyre_linux_amd64.tar.gz
 rm dnspyre_linux_amd64.tar.gz
 wget -q https://raw.githubusercontent.com/Tantalor93/dnspyre/master/data/10000-domains
 rm /tmp/dnspyre-json
-cd ~
+cd ~ || error_exit "Konnte nicht nach ~ wechseln"
 #
 # https://www.postman.com/
 install-snap-package "postman"
@@ -233,7 +244,9 @@ install-snap-package "keepassxc"
 
 # Zerotier
 # https://www.zerotier.com/
-curl -s https://install.zerotier.com | sudo bash
+# WARNUNG: Remote Code Execution - Offizielles ZeroTier Installationsskript
+echo "Installiere ZeroTier (Remote-Script)..."
+curl -fsSL https://install.zerotier.com | sudo bash
 
 # mdk3 - Wireless Attack Tool
 # Beispiel: mdk3 mon0 d -c 6
