@@ -36,6 +36,9 @@
 .idea/
 *.code-workspace
 
+# Claude Code lokale Einstellungen
+.claude/
+
 # Python
 __pycache__/
 *.py[cod]
