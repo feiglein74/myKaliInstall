@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Version
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 # Versionsinformation anzeigen
 if [[ "$1" == "--version" ]] || [[ "$1" == "-v" ]]; then
@@ -86,7 +86,7 @@ function check_apt {
   fi
 }
 
-function dpkg-query {
+function check_apt_package {
   local package="$1"
   if dpkg -l | grep -q "$package"; then
     echo "$package ist bereits installiert."
@@ -147,7 +147,7 @@ if [[ $(command -v code) ]]; then
   echo "Code ist bereits installiert."
 else
   echo "Installiere Code..."
-  sudo snap install code --classic || error_exit "Installation von $package fehlgeschlagen."
+  sudo snap install code --classic || error_exit "Installation von VS Code fehlgeschlagen."
 fi
 
 # https://jqlang.org/
@@ -157,25 +157,30 @@ install-snap-package "jq"
 eval "$(curl https://get.x-cmd.com)"
 #
 # https://github.com/Yamato-Security/hayabusa
-mkdir ~/hayabusa
+mkdir -p ~/hayabusa
 cd ~/hayabusa
 curl -s https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
-cat /tmp/hayabusa-json | /snap/bin/jq '.assets[] | select (.name|test("lin-x64-musl.zip"))' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
-unzip -o -qq hayabusa-3.3.0-lin-x64-musl.zip
-rm hayabusa-3.3.0-lin-x64-musl.zip
-chmod a+x hayabusa-3.3.0-lin-x64-musl
-./hayabusa-3.3.0-lin-x64-musl update-rules --quiet
+HAYABUSA_ZIP=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .name' /tmp/hayabusa-json)
+HAYABUSA_URL=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .browser_download_url' /tmp/hayabusa-json)
+wget -c "$HAYABUSA_URL"
+unzip -o -qq "$HAYABUSA_ZIP"
+rm "$HAYABUSA_ZIP"
+HAYABUSA_BIN=$(ls hayabusa-*-lin-x64-musl 2>/dev/null | head -1)
+chmod a+x "$HAYABUSA_BIN"
+./"$HAYABUSA_BIN" update-rules --quiet
 rm /tmp/hayabusa-json
-cd ..
+cd ~
 echo -e "\033[0m"
 #
 # Velociraptor - Endpoint Detection and Response
 # https://www.velocidex.com/
-mkdir ~/velociraptor
+mkdir -p ~/velociraptor
 cd ~/velociraptor
 curl -s https://api.github.com/repos/Velocidex/velociraptor/releases/latest > /tmp/velociraptor-json
 cat /tmp/velociraptor-json | /snap/bin/jq '[.assets[] | select (.name|test("linux-amd64-musl$")) | .browser_download_url] | last' | xargs wget -c {}
 chmod a+x velociraptor-v*linux-amd64-musl
+rm /tmp/velociraptor-json
+cd ~
 #
 # https://github.com/tio/tio
 install-apt-package "tio"
@@ -204,7 +209,7 @@ make
 cd ~
 #
 # https://github.com/Tantalor93/dnspyre
-mkdir ~/dnspyre
+mkdir -p ~/dnspyre
 cd ~/dnspyre
 curl -s https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
 cat /tmp/dnspyre-json | /snap/bin/jq '.assets[] | select (.name=="dnspyre_linux_amd64.tar.gz")' | /snap/bin/jq '.browser_download_url' | xargs wget -c {}
