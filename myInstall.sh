@@ -2,13 +2,16 @@
 set -euo pipefail
 
 # Version
-VERSION="1.4.0"
+VERSION="1.5.0"
 
 # Versionsinformation anzeigen
 if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then
   echo "myKaliInstall v${VERSION}"
   exit 0
 fi
+
+# Verzeichnis dieses Skripts, unabhaengig vom aktuellen Arbeitsverzeichnis
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 function error_exit {
   echo "Fehler: $1" >&2
@@ -96,6 +99,24 @@ function check_apt_package {
   fi
 }
 
+# Laedt die Release-Info von GitHub nach $2 und gibt den Tag-Namen aus.
+# Faengt zwei Faelle ab, die sonst erst spaeter als kryptischer jq-Fehler
+# auftauchen: nicht erreichbare API (curl -f) und das GitHub-Rate-Limit
+# von 60 Anfragen/Stunde ohne Token (dann fehlt tag_name in der Antwort).
+function fetch_latest_release {
+  local repo="$1" json="$2" tag msg
+  if ! curl -fsS "https://api.github.com/repos/${repo}/releases/latest" -o "$json"; then
+    error_exit "GitHub-API fuer '${repo}' nicht erreichbar. Internetverbindung pruefen."
+  fi
+  tag=$(jq -r '.tag_name // empty' "$json")
+  if [[ -z "$tag" ]]; then
+    msg=$(jq -r '.message // "unerwartete Antwort"' "$json")
+    rm -f "$json"
+    error_exit "Keine Release-Info fuer '${repo}': ${msg}"
+  fi
+  printf '%s\n' "$tag"
+}
+
 function install-apt-package {
   local package="$1"
   if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
@@ -108,7 +129,9 @@ function install-apt-package {
 
 function install-snap-package {
   local package="$1"
-  if [[ $(command -v "$package") ]]; then
+  # snap list statt command -v: der Binary-Name weicht teils vom Snap-Namen ab
+  # und /snap/bin liegt nicht in jeder Shell im PATH.
+  if snap list "$package" &> /dev/null; then
     echo "$package ist bereits installiert."
   else
     echo "Installiere $package..."
@@ -126,8 +149,9 @@ check_command "curl"
 check_command "tar"
 
 
-# Update-Routine
-source ./myUpdate.sh
+# Update-Routine (absoluter Pfad, damit das Skript aus jedem
+# Arbeitsverzeichnis heraus startbar ist)
+source "${SCRIPT_DIR}/myUpdate.sh"
 #
 # https://github.com/gnome-terminator/terminator
 install-apt-package "terminator"
@@ -135,6 +159,10 @@ install-apt-package "terminator"
 # https://snapcraft.io/store
 install-apt-package "snapd"
 sudo systemctl enable --now snapd snapd.apparmor
+# Auf frischen Systemen ist snapd direkt nach der Installation noch nicht
+# initialisiert; ohne dieses Warten scheitert der erste snap install mit
+# "too early for operation".
+sudo snap wait system seed.loaded
 sudo snap refresh
 
 # https://www.gnu.org/software/parallel/man.html
@@ -152,28 +180,40 @@ else
 fi
 
 # https://jqlang.org/
-install-snap-package "jq"
+# jq aus den Kali-Repos statt per snap: macht den absoluten Pfad
+# /snap/bin/jq ueberfluessig und entkoppelt die Release-Pruefungen von snapd.
+install-apt-package "jq"
 #
 # https://www.x-cmd.com/
 # WARNUNG: Remote Code Execution - Code wird direkt von URL ausgeführt
 echo "Installiere x-cmd (Remote-Script)..."
-eval "$(curl -fsSL https://get.x-cmd.com)" || echo "x-cmd Installation fehlgeschlagen (optional)"
+# Hinweis: Das x-cmd Bootstrap-Script prüft die laufende Shell über
+# $ZSH_VERSION / $BASH_VERSION. Unter `set -u` ist eine solche Referenz
+# fatal und beendet die Shell sofort - ein `|| echo ...` greift dabei nicht.
+# Deshalb läuft der eval in einer Subshell ohne -e/-u; schlägt sie fehl,
+# fängt das `||` den Exit-Code ab und die Installation läuft weiter.
+(
+  set +euo pipefail
+  eval "$(curl -fsSL https://get.x-cmd.com)"
+) || echo "x-cmd Installation fehlgeschlagen (optional)"
 #
 # https://github.com/Yamato-Security/hayabusa
 mkdir -p ~/hayabusa
 cd ~/hayabusa || error_exit "Konnte nicht nach ~/hayabusa wechseln"
-curl -s https://api.github.com/repos/Yamato-Security/hayabusa/releases/latest > /tmp/hayabusa-json
-HAYABUSA_LATEST=$(/snap/bin/jq -r '.tag_name' /tmp/hayabusa-json)
+HAYABUSA_LATEST=$(fetch_latest_release "Yamato-Security/hayabusa" /tmp/hayabusa-json)
 HAYABUSA_CURRENT=$(find . -maxdepth 1 -name "hayabusa-*-lin-x64-musl" -type f 2>/dev/null | head -1 | sed 's/.*hayabusa-\(.*\)-lin-x64-musl/\1/')
-if [[ "$HAYABUSA_CURRENT" == "$HAYABUSA_LATEST" ]]; then
+# Der Release-Tag lautet "v4.1.0", der Asset-Dateiname aber "hayabusa-4.1.0-...".
+# Ohne das Entfernen des fuehrenden "v" schlaegt der Vergleich immer fehl und
+# hayabusa wird bei jedem Lauf neu heruntergeladen.
+if [[ "$HAYABUSA_CURRENT" == "${HAYABUSA_LATEST#v}" ]]; then
   echo "hayabusa $HAYABUSA_LATEST ist bereits installiert."
   rm /tmp/hayabusa-json
 else
   echo "Installiere hayabusa $HAYABUSA_LATEST (aktuell: ${HAYABUSA_CURRENT:-keine})..."
   # Alte Version entfernen falls vorhanden
   rm -f hayabusa-*-lin-x64-musl 2>/dev/null
-  HAYABUSA_ZIP=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .name' /tmp/hayabusa-json)
-  HAYABUSA_URL=$(/snap/bin/jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .browser_download_url' /tmp/hayabusa-json)
+  HAYABUSA_ZIP=$(jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .name' /tmp/hayabusa-json)
+  HAYABUSA_URL=$(jq -r '.assets[] | select(.name|test("lin-x64-musl.zip")) | .browser_download_url' /tmp/hayabusa-json)
   wget -c "$HAYABUSA_URL"
   unzip -o -qq "$HAYABUSA_ZIP"
   rm "$HAYABUSA_ZIP"
@@ -190,8 +230,7 @@ cd ~ || error_exit "Konnte nicht nach ~ wechseln"
 # https://www.velocidex.com/
 mkdir -p ~/velociraptor
 cd ~/velociraptor || error_exit "Konnte nicht nach ~/velociraptor wechseln"
-curl -s https://api.github.com/repos/Velocidex/velociraptor/releases/latest > /tmp/velociraptor-json
-VELO_LATEST=$(/snap/bin/jq -r '.tag_name' /tmp/velociraptor-json)
+VELO_LATEST=$(fetch_latest_release "Velocidex/velociraptor" /tmp/velociraptor-json)
 VELO_CURRENT=$(find . -maxdepth 1 -name "velociraptor-v*linux-amd64-musl" -type f 2>/dev/null | head -1 | sed 's/.*velociraptor-\(v[0-9.]*\).*/\1/')
 if [[ "$VELO_CURRENT" == "$VELO_LATEST" ]]; then
   echo "velociraptor $VELO_LATEST ist bereits installiert."
@@ -199,7 +238,7 @@ if [[ "$VELO_CURRENT" == "$VELO_LATEST" ]]; then
 else
   echo "Installiere velociraptor $VELO_LATEST (aktuell: ${VELO_CURRENT:-keine})..."
   rm -f velociraptor-v*linux-amd64-musl 2>/dev/null
-  VELO_URL=$(/snap/bin/jq -r '[.assets[] | select(.name|test("linux-amd64-musl$")) | .browser_download_url] | last' /tmp/velociraptor-json)
+  VELO_URL=$(jq -r '[.assets[] | select(.name|test("linux-amd64-musl$")) | .browser_download_url] | last' /tmp/velociraptor-json)
   wget -c "$VELO_URL"
   chmod a+x velociraptor-v*linux-amd64-musl
   rm /tmp/velociraptor-json
@@ -244,8 +283,7 @@ fi
 # https://github.com/Tantalor93/dnspyre
 mkdir -p ~/dnspyre
 cd ~/dnspyre || error_exit "Konnte nicht nach ~/dnspyre wechseln"
-curl -s https://api.github.com/repos/Tantalor93/dnspyre/releases/latest > /tmp/dnspyre-json
-DNSPYRE_LATEST=$(/snap/bin/jq -r '.tag_name' /tmp/dnspyre-json)
+DNSPYRE_LATEST=$(fetch_latest_release "Tantalor93/dnspyre" /tmp/dnspyre-json)
 DNSPYRE_CURRENT=""
 if [[ -x ~/dnspyre/dnspyre ]]; then
   DNSPYRE_CURRENT=$(~/dnspyre/dnspyre --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -256,7 +294,7 @@ if [[ "$DNSPYRE_CURRENT" == "$DNSPYRE_LATEST" ]]; then
 else
   echo "Installiere dnspyre $DNSPYRE_LATEST (aktuell: ${DNSPYRE_CURRENT:-keine})..."
   rm -f dnspyre 2>/dev/null
-  DNSPYRE_URL=$(/snap/bin/jq -r '.assets[] | select(.name=="dnspyre_linux_amd64.tar.gz") | .browser_download_url' /tmp/dnspyre-json)
+  DNSPYRE_URL=$(jq -r '.assets[] | select(.name=="dnspyre_linux_amd64.tar.gz") | .browser_download_url' /tmp/dnspyre-json)
   wget -c "$DNSPYRE_URL"
   tar -xzf dnspyre_linux_amd64.tar.gz
   rm dnspyre_linux_amd64.tar.gz

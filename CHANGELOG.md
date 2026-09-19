@@ -18,6 +18,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Alle Kommentare und Fehlermeldungen auf Deutsch übersetzt
 - README.md auf Deutsch übersetzt und erweitert
 
+## [1.5.0] - 2026-09-19
+
+### Fixed
+- **Hayabusa wurde bei jedem Lauf neu installiert**: Der Release-Tag (`v4.1.0`)
+  wurde gegen die aus dem Asset-Dateinamen extrahierte Version (`4.1.0`)
+  verglichen - der Vergleich konnte nie zutreffen. Fuehrendes `v` wird nun entfernt.
+- **Abbruch bei GitHub-Rate-Limit**: `curl -s` ohne `-f` schrieb Fehlerantworten
+  in die JSON-Datei; der Fehler trat erst spaeter als kryptischer jq-Abbruch auf.
+  Neue Funktion `fetch_latest_release` prueft HTTP-Status und `tag_name` und
+  meldet die API-Ursache im Klartext.
+- **Pfadabhaengiges `source ./myUpdate.sh`**: Das Skript lief nur aus dem
+  Repo-Verzeichnis heraus. Nutzt jetzt `SCRIPT_DIR` (via `BASH_SOURCE`).
+- **`x-cmd` beendete das Skript**: Das Bootstrap-Script referenziert
+  `$ZSH_VERSION`, was unter `set -u` die Shell sofort beendet - das `||` griff
+  dabei nicht. Der `eval` laeuft jetzt in einer Subshell ohne `-e`/`-u`.
+- **snapd-Initialisierung**: `sudo snap wait system seed.loaded` nach der
+  snapd-Installation verhindert "too early for operation" beim ersten
+  `snap install` auf frischen Systemen.
+
+### Changed
+- `jq` wird ueber apt statt snap installiert; der hart verdrahtete Pfad
+  `/snap/bin/jq` entfaellt an 8 Stellen.
+- `install-snap-package` prueft mit `snap list` statt `command -v` - der
+  Binary-Name weicht teils vom Snap-Namen ab und `/snap/bin` liegt nicht in
+  jeder Shell im PATH.
+
 ## [1.0.0] - 2024-11-14
 
 ### Added
