@@ -7,7 +7,7 @@ Automatisiertes Shell-Script zur Installation und Konfiguration einer umfassende
 Dieses Script richtet ein frisches Kali Linux System mit einer kuratierten Auswahl an Tools für:
 - **Sicherheitsanalyse**: Forensik, Endpoint Detection, Wireless Testing
 - **DNS-Testing**: Lasttest-Tools und erweiterte DNS-Utilities
-- **Entwicklung**: VS Code, Postman, API-Testing
+- **Entwicklung**: VS Code, Claude Code, Postman, API-Testing
 - **Netzwerk**: VPN, Monitoring, Serial Terminal
 - **Produktivität**: Wissensdatenbank, Passwort-Manager, E-Mail
 
@@ -54,6 +54,7 @@ chmod +x myUpdate.sh
 
 ### Entwicklung
 - **Visual Studio Code**: Code-Editor
+- **Claude Code**: Agentische CLI von Anthropic (signiertes apt-Repository)
 - **Postman**: API-Testing und Entwicklung
 
 ### Netzwerk

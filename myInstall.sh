@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Version
-VERSION="1.5.0"
+VERSION="1.6.0"
 
 # Versionsinformation anzeigen
 if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then
@@ -177,6 +177,35 @@ if [[ $(command -v code) ]]; then
 else
   echo "Installiere Code..."
   sudo snap install code --classic || error_exit "Installation von VS Code fehlgeschlagen."
+fi
+
+# Claude Code - agentische CLI von Anthropic
+# https://code.claude.com/docs/en/setup
+# Bewusst ueber das signierte apt-Repository statt "curl | bash": apt prueft
+# jedes Paket gegen den Anthropic-Schluessel, und Updates laufen ueber die
+# Update-Routine in myUpdate.sh automatisch mit.
+if dpkg-query -W -f='${Status}' claude-code 2>/dev/null | grep -q "install ok installed"; then
+  echo "claude-code ist bereits installiert."
+else
+  echo "Richte Claude-Code-Repository ein..."
+  install-apt-package "gnupg"
+  sudo install -d -m 0755 /etc/apt/keyrings
+  sudo curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
+    -o /etc/apt/keyrings/claude-code.asc \
+    || error_exit "Signaturschluessel fuer Claude Code konnte nicht geladen werden."
+  # Fingerabdruck gegen den veroeffentlichten Wert pruefen, bevor dem
+  # Repository vertraut wird. Schlaegt das fehl, wird der Schluessel wieder
+  # entfernt, damit kein halb eingerichtetes Repository zurueckbleibt.
+  CLAUDE_KEY_EXPECTED="31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE"
+  CLAUDE_KEY_ACTUAL=$(gpg --show-keys --with-colons /etc/apt/keyrings/claude-code.asc 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}')
+  if [[ "$CLAUDE_KEY_ACTUAL" != "$CLAUDE_KEY_EXPECTED" ]]; then
+    sudo rm -f /etc/apt/keyrings/claude-code.asc
+    error_exit "Fingerabdruck des Claude-Code-Schluessels stimmt nicht (erwartet $CLAUDE_KEY_EXPECTED, erhalten ${CLAUDE_KEY_ACTUAL:-keiner})."
+  fi
+  echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+    | sudo tee /etc/apt/sources.list.d/claude-code.list > /dev/null
+  sudo apt -qq -y update
+  install-apt-package "claude-code"
 fi
 
 # https://jqlang.org/

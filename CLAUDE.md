@@ -67,6 +67,7 @@ Das Skript folgt einem konsistenten Muster für jedes Tool:
 
 **Entwicklung:**
 - VS Code (via snap --classic)
+- Claude Code (signiertes apt-Repo downloads.claude.ai)
 - Postman API Client
 
 **Netzwerk:**

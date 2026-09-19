@@ -18,6 +18,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Alle Kommentare und Fehlermeldungen auf Deutsch übersetzt
 - README.md auf Deutsch übersetzt und erweitert
 
+## [1.6.0] - 2026-09-19
+
+### Added
+- **Claude Code**: Agentische CLI von Anthropic. Installation ueber das
+  signierte apt-Repository von downloads.claude.ai statt per `curl | bash` -
+  apt prueft jedes Paket gegen den Anthropic-Schluessel, und Updates laufen
+  ueber myUpdate.sh automatisch mit. Der Fingerabdruck des Signaturschluessels
+  wird vor dem Einrichten des Repositories geprueft; bei Abweichung wird der
+  Schluessel wieder entfernt und abgebrochen.
+
 ## [1.5.0] - 2026-09-19
 
 ### Fixed
